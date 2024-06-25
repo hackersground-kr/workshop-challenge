@@ -32,7 +32,7 @@
         curl -X POST \
             -H "Content-Type: application/json" \
             -d '{ "question": "지금 멜론 차트 1위는 누구야?" }' \
-            http://myapp.happyhill-70162bb9.koreacentral.azurecontainerapps.io/melonchart
+            https://my-backend-api.koreacentral.azurecontainerapps.io/melonchart
         ```
 
         **응답**
