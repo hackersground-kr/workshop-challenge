@@ -75,62 +75,85 @@
 
        ![backend](./images/example-backend.png)
 
-     - Semantic Kernel 사용을 위한 추가 힌트: 필요한 경우 아래와 같은 식으로 Semantic Kernel 인스턴스를 의존성 주입할 수 있습니다.
-
-        ```csharp
-        // Semantic Kernel 인스턴스 의존성 추가하기
-        builder.Services.AddScoped<Kernel>(sp =>
-        {
-            // DO SOMETHING HERE
-        
-            var kernel = Kernel.CreateBuilder()
-                               .AddAzureOpenAIChatCompletion(
-                                   deploymentName: config["OpenAI:DeploymentName"],
-                                   endpoint: config["OpenAI:Endpoint"],
-                                   apiKey: config["OpenAI:ApiKey"])
-                               .Build();
-        
-            // DO SOMETHING HERE
-        
-            return kernel;
-        });
-        
-        // Semantic Memory 의존성 추가하기
-        #pragma warning disable SKEXP0001
-        #pragma warning disable SKEXP0010
-        #pragma warning disable SKEXP0050
-        builder.Services.AddSingleton<ISemanticTextMemory>(sp =>
-        {
-            // DO SOMETHING HERE
-        
-            var memory = new MemoryBuilder()
-                             .WithAzureOpenAITextEmbeddingGeneration(
-                                 deploymentName: "model-textembeddingada002-2",
-                                 endpoint: config["OpenAI:Endpoint"],
-                                 apiKey: config["OpenAI:ApiKey"])
-                             .WithMemoryStore(new VolatileMemoryStore())
-                             .Build();
-        
-            // DO SOMETHING HERE
-        
-            return memory;
-        });
-        #pragma warning restore SKEXP0050
-        #pragma warning restore SKEXP0010
-        #pragma warning restore SKEXP0001
-        ```
-
-2. Azure Bicep과 GitHub Actions를 활용해서 빌드 및 배포 자동화를 구성해 주세요.
+1. Azure Bicep과 GitHub Actions를 활용해서 빌드 및 배포 자동화를 구성해 주세요.
 
    - 자신의 GItHub 리포지토리를 생성하고 코드를 커밋
    - 코드 커밋/푸시 이벤트가 발생하면 GitHub Actions를 통해 Azure Bicep을 이용해서 인프라를 생성하고 .NET Aspire 앱을 배포'
    - Azure 배포를 위한 리소스 그룹 이름은 `challenge-{{자신의 GitHub ID}}`입니다.
 
-3. 배포 성공 후 https://hackersground.kr 에서 아래 내용을 [이슈](https://github.com/hackersground-kr/hackers-ground/issues/new/choose)로 제출해 주세요.
+1. 배포 성공 후 https://hackersground.kr 에서 아래 내용을 [이슈](https://github.com/hackersground-kr/hackers-ground/issues/new/choose)로 제출해 주세요.
 
    > **과제 제출 양식**은 아래와 같습니다. 반드시 지켜 주세요.
 
    - GitHub 리포지토리 URL - **반드시 public 리포지토리로 설정**
    - Azure Container Apps 서비스 URL - **프론트엔드 앱 URL**, **백엔드 API 앱 URL**, **대시보드 앱 URL**
 
-4. 이슈 생성후 검증단이 직접 확인하고, 성공적으로 배포하고 프론트엔드/백엔드 앱이 작동하는 경우에 한해 과제 완료로 처리합니다.
+1. 이슈 생성후 검증단이 직접 확인하고, 성공적으로 배포하고 프론트엔드/백엔드 앱이 작동하는 경우에 한해 과제 완료로 처리합니다.
+
+## 추가 힌트
+
+1. Semantic Kernel 의존성 주입: 필요한 경우 아래와 같은 식으로 Semantic Kernel 인스턴스를 의존성 주입할 수 있습니다.
+
+   - Semantic Kernel 인스턴스 의존성 추가하기
+
+      ```csharp
+      // Semantic Kernel 인스턴스 의존성 추가하기
+      builder.Services.AddScoped<Kernel>(sp =>
+      {
+          // DO SOMETHING HERE
+  
+          var kernel = Kernel.CreateBuilder()
+                             .AddAzureOpenAIChatCompletion(
+                                 deploymentName: config["OpenAI:DeploymentName"],
+                                 endpoint: config["OpenAI:Endpoint"],
+                                 apiKey: config["OpenAI:ApiKey"])
+                             .Build();
+      
+          // DO SOMETHING HERE
+  
+          return kernel;
+      });
+      ```
+
+   - Semantic Memory 인스턴스 의존성 추가하기
+
+      ```csharp
+      // Semantic Memory 인스턴스 의존성 추가하기
+      #pragma warning disable SKEXP0001
+      #pragma warning disable SKEXP0010
+      #pragma warning disable SKEXP0050
+      builder.Services.AddSingleton<ISemanticTextMemory>(sp =>
+      {
+          // DO SOMETHING HERE
+  
+          var memory = new MemoryBuilder()
+                           .WithAzureOpenAITextEmbeddingGeneration(
+                               deploymentName: "model-textembeddingada002-2",
+                               endpoint: config["OpenAI:Endpoint"],
+                               apiKey: config["OpenAI:ApiKey"])
+                           .WithMemoryStore(new VolatileMemoryStore())
+                           .Build();
+      
+          // DO SOMETHING HERE
+  
+          return memory;
+      });
+      #pragma warning restore SKEXP0050
+      #pragma warning restore SKEXP0010
+      #pragma warning restore SKEXP0001
+      ```
+
+1. Semantic Kernel 프롬프트 실행: 필요한 경우 아래 내용을 `.csproj` 파일에 추가해야 할 수도 있습니다.
+
+    ```xml
+    <PropertyGroup>
+      <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Update="$(RunWorkingDirectory)\Prompts\**">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </None>
+    </ItemGroup>
+    ```
