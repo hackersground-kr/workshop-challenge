@@ -20,55 +20,68 @@
      - 홈페이지에서 질문을 입력하고 결과를 표시하는 화면을 구성합니다.
      - 화면 UI는 자유롭게 구성하되 질문을 입력하고 결과를 표시할 수 있어야 합니다.
 
-       > **중요**: 반드시 아래 세 가지 요소를 포함해야 합니다.
+       > **중요**: 반드시 아래 다섯 가지 요소를 반드시 포함해야 합니다.
 
-       - 질문: `<input id="question" />`,
-       - 요청: `<button id="ask">Ask</button>`,
+       - YouTube 링크: `<input id="youtube-link" />`,
+       - 비디오 언어: `<select id="video-language-code"></select>`,
+       - 요약 언어: `<select id="summary-language-code"></select>`
+       - 요청: `<button id="summary">Summary</button>`,
        - 답변: `<textarea id="result"></textarea>`
 
-     - `Ask` 버튼을 클릭하면, 백엔드 API 앱의 `/melonchart` 엔드포인트를 호출해서 결과를 화면에 표시해야 합니다.
+     - `Summary` 버튼을 클릭하면, 백엔드 API 앱의 `/summarise` 엔드포인트를 호출해서 결과를 화면에 표시해야 합니다.
 
      - 예시 화면:
 
        ![frontend](./images/example-frontend.png)
 
    - 백엔드 API 앱: `backend` 디렉토리 아래 ASP.NET Core Web API로 개발합니다.
-     - Azure OpenAI와 Semantic Kernel을 이용해서 `/melonchart` 엔드포인트를 구현합니다.
-
-       > **아주 중요**: Azure OpenAI SDK는 **1.x** 버전을 사용합니다. 2.x 버전을 사용할 경우 오류가 발생할 수 있습니다.
-
-     - 백엔드 API 앱은 프론트엔드 UI를 통해서 뿐만 아니라 직접 API를 호출할 수 있어야 합니다. 즉, 인터넷에 노출되어야 합니다.
-     - 데이터셋: https://github.com/aliencube/MelonChart.NET/tree/main/data 에서 데이터셋을 가져와서 활용합니다.
-     - `/melonchart` 엔드포인트는 `POST` 방식으로 요청을 받아 처리합니다.
-     - 요청 Payload의 형태는 반드시 아래와 같아야 합니다:
-
-       ```json
-       {
-         "question": "자연어 질문"
-       }
-       ```
-
-     - 응답 Payload의 형태는 단순 문자열로 아래의 형식을 갖춰야 합니다:
-
-       ```plaintext
-       노래|가수|앨범|순위
-       ```
+     - `/weatherforecast` 엔드포인트를 구현합니다.
 
      - 예:
 
         **요청**
 
         ```bash
-        curl -X POST \
+        curl -X GET \
             -H "Content-Type: application/json" \
-            -d '{ "question": "지금 멜론 차트 1위는 누구야?" }' \
-            https://my-backend-api.koreacentral.azurecontainerapps.io/melonchart
+            https://my-backend-api.koreacentral.azurecontainerapps.io/weatherforecast
         ```
 
         **응답**
 
-        ```plaintext
-        Dynamite|방탄소년단|BE|1
+        ```json
+        [
+          {
+            "date": "2024-07-24",
+            "temperatureC": -9,
+            "summary": "Balmy",
+            "temperatureF": 16
+          },
+          {
+            "date": "2024-07-25",
+            "temperatureC": 41,
+            "summary": "Sweltering",
+            "temperatureF": 105
+          },
+          {
+            "date": "2024-07-26",
+            "temperatureC": 46,
+            "summary": "Sweltering",
+            "temperatureF": 114
+          },
+          {
+            "date": "2024-07-27",
+            "temperatureC": 48,
+            "summary": "Cool",
+            "temperatureF": 118
+          },
+          {
+            "date": "2024-07-28",
+            "temperatureC": 7,
+            "summary": "Freezing",
+            "temperatureF": 44
+          }
+        ]
         ```
 
      - 예시 화면:
@@ -79,7 +92,7 @@
 
    - 자신의 GItHub 리포지토리를 생성하고 코드를 커밋
    - 코드 커밋/푸시 이벤트가 발생하면 GitHub Actions를 통해 Azure Bicep을 이용해서 인프라를 생성하고 .NET Aspire 앱을 배포'
-   - Azure 배포를 위한 리소스 그룹 이름은 `challenge-{{자신의 GitHub ID}}`입니다.
+   - Azure 배포를 위한 리소스 그룹 이름은 `rg-{{자신의 GitHub ID}}`입니다.
 
 1. 배포 성공 후 https://hackersground.kr 에서 아래 내용을 [이슈](https://github.com/hackersground-kr/hackers-ground/issues/new/choose)로 제출해 주세요.
 
@@ -89,71 +102,3 @@
    - Azure Container Apps 서비스 URL - **프론트엔드 앱 URL**, **백엔드 API 앱 URL**, **대시보드 앱 URL**
 
 1. 이슈 생성후 검증단이 직접 확인하고, 성공적으로 배포하고 프론트엔드/백엔드 앱이 작동하는 경우에 한해 과제 완료로 처리합니다.
-
-## 추가 힌트
-
-1. Semantic Kernel 의존성 주입: 필요한 경우 아래와 같은 식으로 Semantic Kernel 인스턴스를 의존성 주입할 수 있습니다.
-
-   - Semantic Kernel 인스턴스 의존성 추가하기
-
-      ```csharp
-      // Semantic Kernel 인스턴스 의존성 추가하기
-      builder.Services.AddScoped<Kernel>(sp =>
-      {
-          // DO SOMETHING HERE
-  
-          var kernel = Kernel.CreateBuilder()
-                             .AddAzureOpenAIChatCompletion(
-                                 deploymentName: config["OpenAI:DeploymentName"],
-                                 endpoint: config["OpenAI:Endpoint"],
-                                 apiKey: config["OpenAI:ApiKey"])
-                             .Build();
-      
-          // DO SOMETHING HERE
-  
-          return kernel;
-      });
-      ```
-
-   - Semantic Memory 인스턴스 의존성 추가하기
-
-      ```csharp
-      // Semantic Memory 인스턴스 의존성 추가하기
-      #pragma warning disable SKEXP0001
-      #pragma warning disable SKEXP0010
-      #pragma warning disable SKEXP0050
-      builder.Services.AddSingleton<ISemanticTextMemory>(sp =>
-      {
-          // DO SOMETHING HERE
-  
-          var memory = new MemoryBuilder()
-                           .WithAzureOpenAITextEmbeddingGeneration(
-                               deploymentName: "model-textembeddingada002-2",
-                               endpoint: config["OpenAI:Endpoint"],
-                               apiKey: config["OpenAI:ApiKey"])
-                           .WithMemoryStore(new VolatileMemoryStore())
-                           .Build();
-      
-          // DO SOMETHING HERE
-  
-          return memory;
-      });
-      #pragma warning restore SKEXP0050
-      #pragma warning restore SKEXP0010
-      #pragma warning restore SKEXP0001
-      ```
-
-1. Semantic Kernel 프롬프트 실행: 필요한 경우 아래 내용을 `.csproj` 파일에 추가해야 할 수도 있습니다.
-
-    ```xml
-    <PropertyGroup>
-      <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
-    </PropertyGroup>
-    
-    <ItemGroup>
-      <None Update="$(RunWorkingDirectory)\Prompts\**">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </None>
-    </ItemGroup>
-    ```
